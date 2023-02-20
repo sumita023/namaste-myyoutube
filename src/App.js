@@ -1,25 +1,44 @@
-import logo from './logo.svg';
-import './App.css';
-
+import "./App.css";
+import "./components/Head.js";
+import Head from "./components/Head.js";
+import Body from "./components/Body";
+import { Provider } from "react-redux";
+import store from "./Utils/store";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import MainContainer from "./components/Maincontainer";
+import WatchPage from "./components/WatchPage";
+const appRouter = createBrowserRouter([
+  {
+    path: "/",
+    element: <Body />,
+    children: [
+      {
+        path: "/",
+        element: <MainContainer />,
+      },
+      {
+        path:"watch",
+        element:<WatchPage/>
+      }
+    ],
+  },
+]);
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Provider store={store}>
+      <div>
+        <Head />
+        <RouterProvider router={appRouter} />
+      </div>
+    </Provider>
   );
 }
 
 export default App;
+
+//1. create store
+//2. create slice
+// 3.add slice in store
+// 4.provide the store
+// 5. dispach the action
+// 6.read from the slice
