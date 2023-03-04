@@ -1,17 +1,62 @@
-import React from "react";
-import { useDispatch } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { json } from "react-router-dom";
 import { toggleMenu } from "../Utils/appSlice";
+import { YOUTUBE_SEARCH_API } from "../Utils/constant";
+import { FilterData } from "../Utils/helper";
+import { cacheResult } from "../Utils/searchSlice";
+import Videocard from "./Videocard";
 
 const Head = () => {
   const dispatch = useDispatch();
   const toggleMenuHandler = () => {
     dispatch(toggleMenu());
   };
+
+  const [searchQuery, setSerachQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestion, setShowSuggestion] = useState(false);
+
+  const searchCache=useSelector(store=>store.search);
+  const allVideosStore=useSelector(store=>store.allVideos);
+
+  useEffect(() => {
+    //API call
+    //console.log(searchQuery);
+    //make an api call after every key press
+    //but if  the difference b/w 2 API calls is <200ms
+    //decline the API call
+    const timer = setTimeout(() => {
+      if (searchCache.searchQuery) {
+        setSuggestions(searchCache.searchQuery);
+      } else {
+        getSearchSuggestions();
+      }
+    }, 200);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
+
+  const getSearchSuggestions = async () => {
+    var data = await fetch(YOUTUBE_SEARCH_API + searchQuery);
+    var json = await data.json();
+    //console.log(json[1]);
+    setSuggestions(json[1]);
+    console.log(searchQuery);
+    dispatch(cacheResult({
+      [searchQuery]:json[1],
+    })
+    );
+  };
+
+ 
   return (
-    <div className="grid grid-flow-col p-5  shadow-sm">
+    <div className="grid grid-flow-col p-5  shadow-sm fixed bg-white w-[100%]">
       <div className="flex col-span-1">
         <img
-          onClick={()=>toggleMenuHandler()}
+          onClick={() => toggleMenuHandler()}
           alt="menu"
           className="h-8 cursor-pointer"
           src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAV1BMVEX///8AAADc3NyUlJT7+/s6Ojru7u5LS0uenp4lJSX39/fh4eFvb28ICAhTU1Otra3o6OjCwsK8vLw1NTWEhITR0dHKyspqampERESNjY0WFhanp6ciIiLxq9OpAAABpElEQVR4nO3dWVLjUAwF0NdxYzskJIxmCPtfJxgSSPPVP0JV8jkruKrYz5YrKrUGAAAAAAAAAPDL+mnsahmn/qy+zfZPRdvNqcBDdpQwh88Cu+wcgbq5wJvsFKFu3itcZ4cItW7tNjtDsNtW8xj9ti1+kc6XaXaCcO0qO0Gwq3aXHSHYXbvPjhDsvj1kRwj20NouO0Oo3dxYZIcI9dFeTNkpAk2fzcWq6lN/vfpqgfdDdpgAw/6fzxjXq2quAz72AAAAAAAAAAAAAP/vby0/quv3j8NFLcPj/myItOoEYnes7/IpO0mYp8uP+6/iP6BPhvl+fM5OEer5/ZDJzhCsb2N2hGBj8aGgeSzoJTtCsJcFzJDW/w3r34f1z9L6z8P67zQLeC+t31ssoD9cQo+/gO80AAAAAAAAAAAAwO+qvt+i+o6S1Wt2mCCvxz0z5XcF1d/3VHssaNcWsHet/u68+vsP6++wzE4QbgG7ZOvvA66/07n4ZbpuS9itXnb6cHacQDxk5whzODWIm5oH6nZz1uT309jVMk4/R0gBAAAAAAAAAMK9AX/vTEiQhKHCAAAAAElFTkSuQmCC"
@@ -25,13 +70,39 @@ const Head = () => {
         </a>
       </div>
       <div className="col-span-10">
-        <input
-          type="text"
-          className="border border-blue-500 w-1/2 p-2 rounded-l-full"
-        />
-        <button className="border border-blue-500 p-2 bg-gray-100 rounded-r-full  px-5">
-          🔍
-        </button>
+        <div>
+          <input
+            type="text"
+            className="border border-blue-500 w-1/2 p-2 rounded-l-full"
+            value={searchQuery}
+            onChange={(e) => {
+              setSerachQuery(e.target.value);
+            }}
+            onFocus={() => {
+              setShowSuggestion(true);
+            }}
+            onBlur={() => {
+              setShowSuggestion(false);
+            }}
+          />
+          <button className="border border-blue-500 p-2 bg-gray-100 rounded-r-full  px-5"
+           onClick={()=>{FilterData(searchQuery, allVideosStore)}}>
+            🔍
+          </button>
+        </div>
+        {showSuggestion && (
+          <div className="fixed bg-white py-2 px-5 w-[34rem]  rounded-lg border border-gray-50 shadow-lg">
+            <ul>
+              {suggestions.map((suggestion) => {
+                return (
+                  <li key={suggestion} className="py-2 hover:bg-gray-50">
+                    🔎 {suggestion}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
       </div>
       <div className="col-span-1">
         <img
