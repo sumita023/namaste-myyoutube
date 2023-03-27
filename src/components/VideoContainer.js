@@ -10,7 +10,7 @@ const VideoContainer = () => {
   const dispatch=useDispatch();
 
   useEffect(() => {
-    // get all videos
+    // get all videos//////////
     getVideos();
     // console.log("2");
   }, []);
