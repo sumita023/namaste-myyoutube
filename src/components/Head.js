@@ -21,11 +21,7 @@ const Head = () => {
   const allVideosStore=useSelector(store=>store.allVideos);
 
   useEffect(() => {
-    //API call
-    //console.log(searchQuery);
-    //make an api call after every key press
-    //but if  the difference b/w 2 API calls is <200ms
-    //decline the API call
+  
     const timer = setTimeout(() => {
       if (searchCache.searchQuery) {
         setSuggestions(searchCache.searchQuery);
